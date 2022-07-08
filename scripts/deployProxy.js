@@ -5,8 +5,8 @@ const { utils } = ethers;
 const implementContractName = "BtfsStatus"
 const proxyContractName = "BtfsStatusProxy"
 const initializeFuncname = "initialize"
-const initializeParamTypes = []
-const initializeParamValues =  []
+const initializeParamTypes = ["address"]
+const initializeParamValues =  ["0x22df207EC3C8D18fEDeed87752C5a68E5b4f6FbD"]
 
 const proxyConstructorTypes = ["address", "bytes"]
 const abiCoder = new utils.AbiCoder();

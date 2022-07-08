@@ -23,8 +23,8 @@ contract BtfsStatus is Initializable, UUPSUpgradeable, OwnableUpgradeable{
     }
     mapping(string => info) private peerMap;
 
-    // sign address
-    address public currentSignAddress = 0x22df207EC3C8D18fEDeed87752C5a68E5b4f6FbD;
+    // sign address, default 0x22df207EC3C8D18fEDeed87752C5a68E5b4f6FbD
+    address currentSignAddress;
 
     // version
     string public currentVersion;
@@ -45,7 +45,8 @@ contract BtfsStatus is Initializable, UUPSUpgradeable, OwnableUpgradeable{
 //    }
 
     // initialize
-    function initialize() public initializer {
+    function initialize(address signAddress) public initializer {
+        currentSignAddress = signAddress;
         __Ownable_init();
     }
 
@@ -116,7 +117,7 @@ contract BtfsStatus is Initializable, UUPSUpgradeable, OwnableUpgradeable{
 
         // verify input param with the signed data.
         bytes32 hash = genHash(peer, createTime, version, Nonce, bttcAddress, signedTime);
-        require(recoverSigner(hash, signed) == 0x22df207EC3C8D18fEDeed87752C5a68E5b4f6FbD, "reportStatus: Invalid signed address.");
+        require( recoverSigner(hash, signed) == currentSignAddress, "reportStatus: Invalid signed address.");
 
         // only bttcAddress is sender， to report status
         // require(bttcAddress == msg.sender, "reportStatus: Invalid signed");
