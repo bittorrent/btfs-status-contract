@@ -31,7 +31,7 @@ contract BtfsStatus is Initializable, UUPSUpgradeable, OwnableUpgradeable{
 
     event signAddressChanged(address lastSignAddress, address currentSignAddress);
     event versionChanged(string currentVersion, string version);
-    event statusReported(string peer, uint32 createTime, string version, uint32 Nonce, uint32 nowTime, address bttcAddress, uint16[30] hearts);
+    event statusReported(string peer, uint32 createTime, string version, uint32 Nonce, uint32 nowTime, address bttcAddress, uint32 signedTime, uint16[30] hearts);
 
     // stat
     struct statistics {
@@ -107,14 +107,15 @@ contract BtfsStatus is Initializable, UUPSUpgradeable, OwnableUpgradeable{
     }
 
     // report status
-    function reportStatus(string memory peer, uint32 createTime, string memory version, uint32 Nonce, address bttcAddress, bytes memory signed) external payable {
+    function reportStatus(string memory peer, uint32 createTime, string memory version, uint32 Nonce, address bttcAddress, uint32 signedTime, bytes memory signed) external {
+
         require(0 < createTime, "reportStatus: Invalid createTime");
         require(0 < Nonce, "reportStatus: Invalid Nonce");
         require(0 < signed.length, "reportStatus: Invalid signed");
         require(peerMap[peer].lastNonce <= Nonce, "reportStatus: Invalid lastNonce<Nonce");
 
         // verify input param with the signed data.
-        bytes32 hash = genHash(peer, createTime, version, Nonce, bttcAddress);
+        bytes32 hash = genHash(peer, createTime, version, Nonce, bttcAddress, signedTime);
         require(verify(hash, signed), "reportStatus: Invalid signed address.");
 
         // only bttcAddress is sender， to report status
@@ -155,11 +156,12 @@ contract BtfsStatus is Initializable, UUPSUpgradeable, OwnableUpgradeable{
             version,
             Nonce,
             nowTime,
-            bttcAddress
+            bttcAddress,
+            signedTime
         );
     }
 
-    function emitStatusReported(string memory peer, uint32 createTime, string memory version, uint32 Nonce, uint32 nowTime, address bttcAddress) internal {
+    function emitStatusReported(string memory peer, uint32 createTime, string memory version, uint32 Nonce, uint32 nowTime, address bttcAddress, uint32 signedTime) internal {
         emit statusReported(
             peer,
             createTime,
@@ -167,6 +169,7 @@ contract BtfsStatus is Initializable, UUPSUpgradeable, OwnableUpgradeable{
             Nonce,
             nowTime,
             bttcAddress,
+            signedTime,
             peerMap[peer].hearts
         );
     }
@@ -202,14 +205,14 @@ contract BtfsStatus is Initializable, UUPSUpgradeable, OwnableUpgradeable{
         return (v, r, s);
     }
 
-    function genHash(string memory peer, uint32 createTime, string memory version, uint32 Nonce, address bttcAddress) internal pure returns (bytes32) {
-        bytes memory data = abi.encode(peer, createTime, version, Nonce, bttcAddress);
+    function genHash(string memory peer, uint32 createTime, string memory version, uint32 Nonce, address bttcAddress, uint32 signedTime) internal pure returns (bytes32) {
+        bytes memory data = abi.encode(peer, createTime, version, Nonce, bttcAddress, signedTime);
         return keccak256(abi.encode("\x19Ethereum Signed Message:\n", data.length, data));
     }
 
     // call from external
-    function genHashExt(string memory peer, uint32 createTime, string memory version, uint32 Nonce, address bttcAddress) external pure returns (bytes32) {
-        return genHash(peer, createTime, version, Nonce, bttcAddress);
+    function genHashExt(string memory peer, uint32 createTime, string memory version, uint32 Nonce, address bttcAddress, uint32 signedTime) external pure returns (bytes32) {
+        return genHash(peer, createTime, version, Nonce, bttcAddress, signedTime);
     }
 
     // call from external
