@@ -116,7 +116,7 @@ contract BtfsStatus is Initializable, UUPSUpgradeable, OwnableUpgradeable{
 
         // verify input param with the signed data.
         bytes32 hash = genHash(peer, createTime, version, Nonce, bttcAddress, signedTime);
-        require(verify(hash, signed), "reportStatus: Invalid signed address.");
+        require(recoverSigner(hash, signed) == 0x22df207EC3C8D18fEDeed87752C5a68E5b4f6FbD, "reportStatus: Invalid signed address.");
 
         // only bttcAddress is sender， to report status
         // require(bttcAddress == msg.sender, "reportStatus: Invalid signed");
@@ -148,8 +148,6 @@ contract BtfsStatus is Initializable, UUPSUpgradeable, OwnableUpgradeable{
         peerMap[peer].lastNonce = Nonce;
         peerMap[peer].lastTime = nowTime;
 
-
-
         emitStatusReported(
             peer,
             createTime,
@@ -174,15 +172,10 @@ contract BtfsStatus is Initializable, UUPSUpgradeable, OwnableUpgradeable{
         );
     }
 
-    function verify(bytes32 hash, bytes memory signed) internal view returns (bool) {
-        return recoverSigner(hash, signed);
-    }
-
-    function recoverSigner(bytes32 hash, bytes memory sig) internal view returns (bool)
+    function recoverSigner(bytes32 hash, bytes memory sig) internal pure returns (address)
     {
         (uint8 v, bytes32 r, bytes32 s) = splitSignature(sig);
-
-        return ecrecover(hash, v+27, r, s) == currentSignAddress;
+        return ecrecover(hash, v+27, r, s);
     }
 
     function splitSignature(bytes memory sig) internal pure returns (uint8, bytes32, bytes32)
