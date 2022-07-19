@@ -112,6 +112,7 @@ contract BtfsStatus is Initializable, UUPSUpgradeable, OwnableUpgradeable{
 
         require(0 < createTime, "reportStatus: Invalid createTime");
         require(0 < Nonce, "reportStatus: Invalid Nonce");
+        require(0 < signedTime, "reportStatus: Invalid signedTime");
         require(0 < signed.length, "reportStatus: Invalid signed");
         require(peerMap[peer].lastNonce <= Nonce, "reportStatus: Invalid lastNonce<Nonce");
 
