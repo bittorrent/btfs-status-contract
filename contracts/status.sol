@@ -75,7 +75,8 @@ contract BtfsStatus is Initializable, UUPSUpgradeable, OwnableUpgradeable{
             bytes memory s;
             return ("", 0, "", 0, 0, 0, s, hearts);
         } else {
-            return (peer, peerMap[peer].createTime, peerMap[peer].version, peerMap[peer].lastNonce, peerMap[peer].lastSignedTime, peerMap[peer].lastSignedTime, peerMap[peer].lastSigned, peerMap[peer].hearts);
+            info memory node = peerMap[peer];
+            return (peer, node.createTime, node.version, node.lastNonce, node.lastSignedTime, node.lastSignedTime, node.lastSigned, node.hearts);
         }
     }
 
@@ -166,6 +167,7 @@ contract BtfsStatus is Initializable, UUPSUpgradeable, OwnableUpgradeable{
     }
 
     function emitStatusReported(string memory peer, uint32 createTime, string memory version, uint32 Nonce, address bttcAddress, uint32 signedTime, uint32 lastNonce, uint32 nowTime) internal {
+        uint16[30] memory hearts = peerMap[peer].hearts;
         emit statusReported(
             peer,
             createTime,
@@ -175,7 +177,7 @@ contract BtfsStatus is Initializable, UUPSUpgradeable, OwnableUpgradeable{
             signedTime,
             lastNonce,
             nowTime,
-            peerMap[peer].hearts
+            hearts
         );
     }
 
