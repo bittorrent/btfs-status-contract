@@ -126,8 +126,7 @@ contract BtfsStatus is Initializable, UUPSUpgradeable, OwnableUpgradeable{
 
         uint32 lastNonce = peerMap[peer].lastNonce;
         uint32 nowTime = uint32(block.timestamp);
-
-        uint index = (signedTime / 86400) % 30;
+        uint index = (nowTime / 86400) % 30;
 
         // first report
         if (peerMap[peer].lastNonce == 0) {
