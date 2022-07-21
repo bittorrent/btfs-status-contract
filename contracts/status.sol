@@ -19,7 +19,7 @@ contract BtfsStatus is Initializable, UUPSUpgradeable, OwnableUpgradeable{
         string version;
         uint32 lastNonce;
         uint32 lastSignedTime;
-        uint32 lastSigned;
+        bytes lastSigned;
         uint16[30] hearts;
     }
     mapping(string => info) private peerMap;
@@ -72,7 +72,8 @@ contract BtfsStatus is Initializable, UUPSUpgradeable, OwnableUpgradeable{
     function getStatus(string memory peer) external view returns(string memory, uint32, string memory, uint32, uint32, uint32, bytes memory, uint16[30] memory) {
         if (peerMap[peer].lastNonce == 0) {
             uint16[30] memory hearts;
-            return ("", 0, "", 0, 0, hearts);
+            bytes memory s;
+            return ("", 0, "", 0, 0, 0, s, hearts);
         } else {
             return (peer, peerMap[peer].createTime, peerMap[peer].version, peerMap[peer].lastNonce, peerMap[peer].lastSignedTime, peerMap[peer].lastSignedTime, peerMap[peer].lastSigned, peerMap[peer].hearts);
         }
