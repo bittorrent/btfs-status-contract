@@ -69,14 +69,14 @@ contract BtfsStatus is Initializable, UUPSUpgradeable, OwnableUpgradeable{
     // get host when score = 8.0
     function getHighScoreHost() external returns(info[] memory) {}
 
-    function getStatus(string memory peer) external view returns(string memory, uint32, string memory, uint32, uint32, uint32, bytes memory, uint16[30] memory) {
+    function getStatus(string memory peer) external view returns(string memory, uint32, string memory, uint32, uint32, bytes memory, uint16[30] memory) {
         if (peerMap[peer].lastNonce == 0) {
             uint16[30] memory hearts;
             bytes memory s;
-            return ("", 0, "", 0, 0, 0, s, hearts);
+            return ("", 0, "", 0, 0, s, hearts);
         } else {
             info memory node = peerMap[peer];
-            return (peer, node.createTime, node.version, node.lastNonce, node.lastSignedTime, node.lastSignedTime, node.lastSigned, node.hearts);
+            return (peer, node.createTime, node.version, node.lastNonce, node.lastSignedTime, node.lastSigned, node.hearts);
         }
     }
 
