@@ -18,7 +18,8 @@ contract BtfsStatus is Initializable, UUPSUpgradeable, OwnableUpgradeable{
         uint32 createTime;
         string version;
         uint32 lastNonce;
-        uint32 lastTime;
+        uint32 lastSignedTime;
+        bytes lastSigned;
         uint16[30] hearts;
     }
     mapping(string => info) private peerMap;
@@ -31,7 +32,7 @@ contract BtfsStatus is Initializable, UUPSUpgradeable, OwnableUpgradeable{
 
     event signAddressChanged(address lastSignAddress, address currentSignAddress);
     event versionChanged(string currentVersion, string version);
-    event statusReported(string peer, uint32 createTime, string version, uint32 Nonce, uint32 nowTime, address bttcAddress, uint32 signedTime, uint16[30] hearts);
+    event statusReported(string peer, uint32 createTime, string version, uint32 Nonce, address bttcAddress, uint32 signedTime, uint32 lastNonce, uint32 nowTime, uint16[30] hearts);
 
     // stat
     struct statistics {
@@ -68,19 +69,21 @@ contract BtfsStatus is Initializable, UUPSUpgradeable, OwnableUpgradeable{
     // get host when score = 8.0
     function getHighScoreHost() external returns(info[] memory) {}
 
-    function getStatus(string memory peer) external view returns(string memory, uint32, string memory, uint32, uint32, uint16[30] memory) {
+    function getStatus(string memory peer) external view returns(string memory, uint32, string memory, uint32, uint32, uint32, bytes memory, uint16[30] memory) {
         if (peerMap[peer].lastNonce == 0) {
             uint16[30] memory hearts;
-            return ("", 0, "", 0, 0, hearts);
+            bytes memory s;
+            return ("", 0, "", 0, 0, 0, s, hearts);
         } else {
-            return (peer, peerMap[peer].createTime, peerMap[peer].version, peerMap[peer].lastNonce, peerMap[peer].lastTime, peerMap[peer].hearts);
+            info memory node = peerMap[peer];
+            return (peer, node.createTime, node.version, node.lastNonce, node.lastSignedTime, node.lastSignedTime, node.lastSigned, node.hearts);
         }
     }
 
 
     // set heart, max idle days = 10
-    function setHeart(string memory peer, uint32 Nonce, uint32 nowTime) internal {
-        uint256 diffTime = nowTime - peerMap[peer].lastTime;
+    function setHeart(string memory peer, uint32 Nonce, uint32 curSignedTime) internal {
+        uint256 diffTime = curSignedTime - peerMap[peer].lastSignedTime;
         if (diffTime > 30 * 86400) {
             diffTime = 30 * 86400;
         }
@@ -96,14 +99,14 @@ contract BtfsStatus is Initializable, UUPSUpgradeable, OwnableUpgradeable{
 
         // 1.set new (diffDays-1) average Nonce; (it is alse reset 0 for more than 30 days' diffDays)
         for (uint256 i = 1; i < diffDays; i++) {
-            uint indexTmp = ((nowTime - i * 86400) / 86400) % 30;
+            uint indexTmp = ((curSignedTime - i * 86400) / 86400) % 30;
             peerMap[peer].hearts[indexTmp] = uint8(diffNonce/diffDays);
 
             balanceNum = balanceNum - diffNonce/diffDays;
         }
 
         // 2.set today balanceNum
-        uint index = (nowTime / 86400) % 30;
+        uint index = (curSignedTime / 86400) % 30;
         peerMap[peer].hearts[index] += uint8(balanceNum);
     }
 
@@ -123,8 +126,8 @@ contract BtfsStatus is Initializable, UUPSUpgradeable, OwnableUpgradeable{
         // only bttcAddress is sender， to report status
         // require(bttcAddress == msg.sender, "reportStatus: Invalid signed");
 
-        uint32 nowTime = uint32(block.timestamp);
-        uint index = (nowTime / 86400) % 30;
+        uint32 lastNonce = peerMap[peer].lastNonce;
+        uint index = (signedTime / 86400) % 30;
 
         // first report
         if (peerMap[peer].lastNonce == 0) {
@@ -137,40 +140,44 @@ contract BtfsStatus is Initializable, UUPSUpgradeable, OwnableUpgradeable{
             totalStat.totalUsers += 1;
             totalStat.total += 1;
         } else {
-            // if (nowTime - peerMap[peer].lastTime <= 86400){
+            // if (signedTime - peerMap[peer].signedTime <= 86400){
             //     return;
             // }
 
-            setHeart(peer, Nonce, nowTime);
+            setHeart(peer, Nonce, signedTime);
             totalStat.total += Nonce - peerMap[peer].lastNonce;
         }
 
         peerMap[peer].createTime = createTime;
         peerMap[peer].version = version;
         peerMap[peer].lastNonce = Nonce;
-        peerMap[peer].lastTime = nowTime;
+        peerMap[peer].lastSignedTime = signedTime;
+        peerMap[peer].lastSigned = signed;
 
         emitStatusReported(
             peer,
             createTime,
             version,
             Nonce,
-            nowTime,
             bttcAddress,
-            signedTime
+            signedTime,
+            lastNonce,
+            uint32(block.timestamp)
         );
     }
 
-    function emitStatusReported(string memory peer, uint32 createTime, string memory version, uint32 Nonce, uint32 nowTime, address bttcAddress, uint32 signedTime) internal {
+    function emitStatusReported(string memory peer, uint32 createTime, string memory version, uint32 Nonce, address bttcAddress, uint32 signedTime, uint32 lastNonce, uint32 nowTime) internal {
+        uint16[30] memory hearts = peerMap[peer].hearts;
         emit statusReported(
             peer,
             createTime,
             version,
             Nonce,
-            nowTime,
             bttcAddress,
             signedTime,
-            peerMap[peer].hearts
+            lastNonce,
+            nowTime,
+            hearts
         );
     }
 
