@@ -147,6 +147,7 @@ contract BtfsStatus is Initializable, UUPSUpgradeable, OwnableUpgradeable{
         } else {
             require(nowTime-signedTime <= 30*86400, "reportStatus: signed time must be within 30 days of the current time.");
 //            require(signedTime-peerMap[peer].lastSignedTime >= 86400, "reportStatus: new signed time is at least 1 day since last signed time.");
+            require(peerMap[peer].createTime == createTime, "reportStatus: Invalid createTime.");
 
             setHeart(peer, Nonce, signedTime, nowTime);
             totalStat.total += Nonce - peerMap[peer].lastNonce;
