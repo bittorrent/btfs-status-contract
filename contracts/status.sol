@@ -41,8 +41,8 @@ contract BtfsStatus is Initializable, UUPSUpgradeable, OwnableUpgradeable{
     statistics  public totalStat;
 
 
-//    constructor() {
-//    }
+    //    constructor() {
+    //    }
 
     // initialize
     function initialize(address signAddress) public initializer {
@@ -114,7 +114,7 @@ contract BtfsStatus is Initializable, UUPSUpgradeable, OwnableUpgradeable{
         require(0 < Nonce, "reportStatus: Invalid Nonce");
         require(0 < signedTime, "reportStatus: Invalid signedTime");
         require(0 < signed.length, "reportStatus: Invalid signed");
-        require(peerMap[peer].lastNonce <= Nonce, "reportStatus: Invalid lastNonce<Nonce");
+        require(peerMap[peer].lastNonce <= Nonce, "reportStatus: Invalid lastNonce<=Nonce");
 
         // verify input param with the signed data.
         bytes32 hash = genHash(peer, createTime, version, Nonce, bttcAddress, signedTime);
