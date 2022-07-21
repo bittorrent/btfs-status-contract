@@ -69,7 +69,6 @@ contract BtfsStatus is Initializable, UUPSUpgradeable, OwnableUpgradeable{
     // get host when score = 8.0
     function getHighScoreHost() external returns(info[] memory) {}
 
-
     function getStatus(string memory peer) external view returns(string memory, uint32, string memory, uint32, uint32, bytes memory, uint16[30] memory) {
         if (peerMap[peer].lastNonce == 0) {
             uint16[30] memory hearts;
@@ -83,20 +82,23 @@ contract BtfsStatus is Initializable, UUPSUpgradeable, OwnableUpgradeable{
 
 
     // set heart, max idle days = 10
-    function setHeart(string memory peer, uint32 Nonce, uint32 curSignedTime) internal {
-        uint256 diffTime = curSignedTime - peerMap[peer].lastSignedTime;
+    function setHeart(string memory peer, uint32 Nonce, uint32 curSignedTime, uint32 nowTime) internal {
+        uint32 lastSignedTimeNew = peerMap[peer].lastSignedTime;
+        if (nowTime - peerMap[peer].lastSignedTime > 30 * 86400) {
+            lastSignedTimeNew = nowTime - 30 * 86400;
+        }
+
+        uint256 diffTime = curSignedTime - lastSignedTimeNew;
         if (diffTime > 30 * 86400) {
             diffTime = 30 * 86400;
         }
+        uint diffDays = diffTime / 86400;
 
         uint256 diffNonce = Nonce - peerMap[peer].lastNonce;
-        if (diffNonce > 30 * 24) {
-            diffNonce = 30 * 24;
+        if (diffNonce > diffDays * 24) {
+            diffNonce = diffDays * 24;
         }
-
-        uint diffDays = diffTime / 86400;
         uint256 balanceNum = diffNonce;
-
 
         // 1.set new (diffDays-1) average Nonce; (it is alse reset 0 for more than 30 days' diffDays)
         for (uint256 i = 1; i < diffDays; i++) {
@@ -128,6 +130,8 @@ contract BtfsStatus is Initializable, UUPSUpgradeable, OwnableUpgradeable{
         // require(bttcAddress == msg.sender, "reportStatus: Invalid signed");
 
         uint32 lastNonce = peerMap[peer].lastNonce;
+        uint32 nowTime = uint32(block.timestamp);
+
         uint index = (signedTime / 86400) % 30;
 
         // first report
@@ -141,11 +145,10 @@ contract BtfsStatus is Initializable, UUPSUpgradeable, OwnableUpgradeable{
             totalStat.totalUsers += 1;
             totalStat.total += 1;
         } else {
-            // if (signedTime - peerMap[peer].signedTime <= 86400){
-            //     return;
-            // }
+            require(nowTime-signedTime <= 30*86400, "reportStatus: signed time must be within 30 days of the current time.");
+//            require(signedTime-peerMap[peer].lastSignedTime >= 86400, "reportStatus: new signed time is at least 1 day since last signed time.");
 
-            setHeart(peer, Nonce, signedTime);
+            setHeart(peer, Nonce, signedTime, nowTime);
             totalStat.total += Nonce - peerMap[peer].lastNonce;
         }
 
