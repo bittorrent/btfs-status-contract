@@ -130,11 +130,12 @@ contract BtfsStatus is Initializable, UUPSUpgradeable, OwnableUpgradeable{
 
         // first report
         if (peerMap[peer].lastNonce == 0) {
-            if (Nonce > 24) {
-                Nonce = 24;
+            uint32 initNonce = Nonce;
+            if (initNonce > 24) {
+                initNonce = 24;
             }
 
-            peerMap[peer].hearts[index] = uint8(Nonce);
+            peerMap[peer].hearts[index] = uint16(initNonce);
 
             totalStat.totalUsers += 1;
             totalStat.total += 1;
