@@ -121,8 +121,8 @@ contract BtfsStatus is Initializable, UUPSUpgradeable, OwnableUpgradeable{
         bytes32 hash = genHash(peer, createTime, version, Nonce, bttcAddress, signedTime);
         require( recoverSigner(hash, signed) == currentSignAddress, "reportStatus: Invalid signed address.");
 
-        // only bttcAddress is sender， to report status
-        // require(bttcAddress == msg.sender, "reportStatus: Invalid signed");
+         // only bttcAddress is sender， to report status
+         require(bttcAddress == msg.sender, "reportStatus: Invalid msg.sender");
 
         uint32 lastNonce = peerMap[peer].lastNonce;
         uint32 nowTime = uint32(block.timestamp);
@@ -141,7 +141,7 @@ contract BtfsStatus is Initializable, UUPSUpgradeable, OwnableUpgradeable{
             totalStat.total += 1;
         } else {
             require(nowTime-signedTime <= 86400, "reportStatus: signed time must be within 1 days of the current time.");
-//            require(nowTime-peerMap[peer].lastSignedTime >= 86400, "reportStatus: now time is at least 1 day more than last signed time.");
+            require(nowTime-peerMap[peer].lastSignedTime >= 86400, "reportStatus: now time is at least 1 day more than last signed time.");
             require(peerMap[peer].createTime == createTime, "reportStatus: Invalid createTime.");
 
             setHeart(peer, Nonce, nowTime);
