@@ -26,6 +26,7 @@ contract BtfsStatus is Initializable, UUPSUpgradeable, OwnableUpgradeable{
 
     // sign address, default 0x22df207EC3C8D18fEDeed87752C5a68E5b4f6FbD
     address currentSignAddress;
+    address[20] currentSignAddressList;
 
     // version
     string public currentVersion;
@@ -115,7 +116,7 @@ contract BtfsStatus is Initializable, UUPSUpgradeable, OwnableUpgradeable{
         require(0 < Nonce, "reportStatus: Invalid Nonce");
         require(0 < signedTime, "reportStatus: Invalid signedTime");
         require(0 < signed.length, "reportStatus: Invalid signed");
-        require(peerMap[peer].lastNonce <= Nonce, "reportStatus: Invalid lastNonce<=Nonce");
+        require(peerMap[peer].lastNonce < Nonce, "reportStatus: Invalid lastNonce<Nonce");
 
         // verify input param with the signed data.
         bytes32 hash = genHash(peer, createTime, version, Nonce, bttcAddress, signedTime);
