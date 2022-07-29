@@ -51,10 +51,15 @@ contract BtfsStatus is Initializable, UUPSUpgradeable, OwnableUpgradeable{
     ///@dev required by the OZ UUPS module
     function _authorizeUpgrade(address) internal override onlyOwner {}
 
-    // set current version, only owner do it
+    // set sign address, only owner do it
     function setSignAddress(address addr) public onlyOwner {
         emit signAddressChanged(currentSignAddress, addr);
         currentSignAddress = addr;
+    }
+
+    // get sign address, only owner do it
+    function getSignAddress() public view onlyOwner returns (address) {
+        return (currentSignAddress);
     }
 
     // set current version, only owner do it
@@ -118,8 +123,8 @@ contract BtfsStatus is Initializable, UUPSUpgradeable, OwnableUpgradeable{
         bytes32 hash = genHash(peer, createTime, version, Nonce, bttcAddress, signedTime);
         require( recoverSigner(hash, signed) == currentSignAddress, "reportStatus: Invalid signed address.");
 
-         // only bttcAddress is sender， to report status
-         require(bttcAddress == msg.sender, "reportStatus: Invalid msg.sender");
+        // only bttcAddress is sender， to report status
+        require(bttcAddress == msg.sender, "reportStatus: Invalid msg.sender");
 
         uint32 lastNonce = peerMap[peer].lastNonce;
         uint32 nowTime = uint32(block.timestamp);
