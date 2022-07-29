@@ -24,7 +24,7 @@ contract BtfsStatus is Initializable, UUPSUpgradeable, OwnableUpgradeable{
     }
     mapping(string => info) private peerMap;
 
-    // sign address, default 0x22df207EC3C8D18fEDeed87752C5a68E5b4f6FbD
+    // sign address
     address currentSignAddress;
     address[20] currentSignAddressList;
 
@@ -41,10 +41,6 @@ contract BtfsStatus is Initializable, UUPSUpgradeable, OwnableUpgradeable{
         uint64 totalUsers;
     }
     statistics  public totalStat;
-
-
-    //    constructor() {
-    //    }
 
     // initialize
     function initialize(address signAddress) public initializer {
