@@ -107,7 +107,7 @@ contract BtfsStatus is Initializable, UUPSUpgradeable, OwnableUpgradeable{
 
         // 2.set today balanceNum
         uint index = (nowTime / 86400) % 30;
-        peerMap[peer].hearts[index] += uint16(balanceNum);
+        peerMap[peer].hearts[index] = uint16(balanceNum);
     }
 
     // report status
